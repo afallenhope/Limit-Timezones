@@ -1,0 +1,10 @@
+Limit Timezone v0.5 BETA
+========================
+
+These are some of the features I'd like to implement in the future.
+
+> Custom timezone selection
+  - User is able to select from a list of timezones which would be displayed and filtered.
+  - Specify timezone format
+
+Will add more later right now, I'm just happy I actually was able to write a module haha

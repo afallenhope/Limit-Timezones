@@ -1,0 +1,39 @@
+<?php
+
+ /*
+  * Implementation of hook_install()
+  */
+function limittimezone_install()
+{
+	/* 
+	 * Whatever it is I want to get done on install (ran only once)
+	 *
+	 */
+}
+
+ /*
+  *  Implementation of hook_enable()
+  */
+function limittimezone_enable()
+{
+    /*	
+     * Whatever it is I want to get done once enabled.
+     *
+     */
+}
+ 
+ /*
+  * Implementation of hook_uninstall()
+  */
+function limittimezone_uninstall()
+{
+  // remove our country timezone property.
+  variable_del('limittimezone_country');
+  
+  // flush our caches.
+  cache_clear_all('*', 'cache', TRUE);
+  cache_clear_all('*', 'cache_filter', TRUE);
+  cache_clear_all('*', 'cache_menu', TRUE);
+  cache_clear_all('*', 'cache_page', TRUE);
+}
+?>

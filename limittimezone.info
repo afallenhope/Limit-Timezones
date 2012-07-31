@@ -1,0 +1,8 @@
+name = Limit Timezones
+description = Modules written to remove unwanted timezones.
+core = 7.x
+
+version = "7.x-1.0-rc1"
+core = "7.x"
+configure = admin/config/settings/limittimezone
+

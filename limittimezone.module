@@ -1,0 +1,154 @@
+<?php
+
+function limittimezone_admin()
+{
+  $form = array();
+  /*
+   * List was gather from http://www.php.net/manual/en/class.datetimezone.php
+   * 
+   * const integer AFRICA = 1 ;
+   * const integer AMERICA = 2 ;
+   * const integer ANTARCTICA = 4 ;
+   * const integer ARCTIC = 8 ;
+   * const integer ASIA = 16 ;
+   * const integer ATLANTIC = 32 ;
+   * const integer AUSTRALIA = 64 ;
+   * const integer EUROPE = 128 ;
+   * const integer INDIAN = 256 ;
+   * const integer PACIFIC = 512 ;
+   * const integer UTC = 1024 ;
+   * const integer ALL = 2047 ;
+   * const integer ALL_WITH_BC = 4095 ;
+   * const integer PER_COUNTRY = 4096 ;
+   */
+   
+   // The selection array.
+  $countries_array = array(
+				1   => "Africa",
+				2   => "America",
+				4   => "Antartica",
+				8   => "Arctic",
+				16  => "Asia",
+				32  => "Atlantic",
+				64  => "Australia",
+				128 => "Europe",
+				256 => "Indian",
+				512 => "Pacific",
+				1024 => "UTC",
+				2047 => "All",
+				4095 => "All with Backwards");
+				
+  // Create a form to manage country filtering.			
+  $form['limittimezone_country'] = array(
+    '#type' => 'select',
+    '#title' => t('Select Country'),
+    '#default_value' => variable_get('limittimezone_country', 2),
+    '#description' => t("The default Timezone to begin with."),
+    '#options' => $countries_array,
+    '#required' => TRUE,
+  );
+  
+  // clean up memory and erase the array because we're not using it
+  unset($countries_array);
+  
+  // return a system form with our newly created form array (OBJECT?)
+  return system_settings_form($form);
+}
+
+
+// Menu handler
+function limittimezone_menu()
+{
+
+  // settings for the link
+  $items = array();
+
+   // first parameter is, the uri request
+  $items['admin/config/settings/limittimezone'] = array(
+    'title' => 'Limit Timezone Settings',
+    'description' => 'Allows user to manage the settings for the Limit Timezone module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('limittimezone_admin'),
+    'access arguments' => array('administer limittimezone settings'),
+    'type' => MENU_NORMAL_ITEM,
+   );
+
+  
+  return $items;
+}
+
+// Always sanitize your inputs.
+function limittimezone_admin_validate($form, &$form_state)
+{
+  $country = $form_state['values']['limittimezone_country'];
+  if (!is_numeric($country)) {
+    form_set_error('limittimezone_country', t('Error please submit the form properly.'));
+  }
+  else if ($country <= 0) {
+    form_set_error('limittimezone_country', t('Error please submit the form properly.'));
+  }
+}
+
+/*
+ * Implementation of the hook_form_alter() API
+ * 
+ * $form  is a pointer to the current form
+ * $form_state is the for state.
+ * $form_id is the ID of the current form
+ */
+function limittimezone_form_alter(&$form, &$form_state,$form_id)
+{
+	// verify we're on the user profile form.
+	// we could have also called limittimezone_user_profile_form_alter() but that was too long.
+	if ($form_id == "user_profile_form")
+	{
+		// pass it to our callback so we can edit it.
+		$form['#after_build'][] = 'limittimezone_timezone_modify';	
+	}
+}
+
+
+/*
+ * Implementation of the hook_timezone_mofify() API
+ * 
+ * $form is the form we specified previous in the hook_form_alter()
+ * $form_state is the pointer.
+ */
+function limittimezone_timezone_modify($form, &$form_state)
+{
+		// I did this as debugging to see if it was actually grabbing the timezones and was doing anything.
+		$curZones = $form['timezone']['timezone']['#options'];
+		
+		// Grab the variable from the settings page or default to America
+		$cntry = variable_get("limittimezone_country", "America");
+		
+		// create a new list of timezones based on Country.		
+		$timezones =  timezone_identifiers_list($cntry);
+		
+		// new local array to store;
+		$zones = array();
+		
+		// our counter.
+		$i=0;
+		
+		// loop through each  timezone
+		foreach($timezones as $tz)
+		{
+			// this makes it so it shows ups the actual text not the numeric value
+			$zones[$tz] = $timezones[$i];
+			$i++;
+		}
+		
+		
+		// apply our new timezones
+		$form['timezone']['timezone']['#options'] =   $zones;
+		
+		// cleanup
+		unset($zones);
+		unset($timezones);
+		
+		// return the modified form.
+		return $form;	
+}
+
+?>
